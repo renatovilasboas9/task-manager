@@ -1,5 +1,0 @@
-# Task Manager Contracts
-
-This directory will contain:
-- TaskSchema.ts - Zod schemas for task validation
-- Type definitions derived from schemas

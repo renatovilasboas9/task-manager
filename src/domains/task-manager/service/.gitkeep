@@ -1,5 +1,0 @@
-# Task Manager Services
-
-This directory will contain:
-- TaskService.ts - Business logic for task operations
-- Task service interfaces and implementations

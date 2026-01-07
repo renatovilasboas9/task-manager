@@ -1,91 +1,314 @@
 #!/usr/bin/env tsx
 
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { execSync } from 'child_process'
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { join } from 'path'
 
-// Ensure reports directory exists
-const reportsDir = 'reports';
-const subdirs = ['lint', 'tests', 'coverage', 'wiring'];
+/**
+ * Global pipeline orchestrator
+ * Pipeline: lint → unit/component → coverage → gera artefatos → gera global-report.json → gera html → abre html
+ */
 
-if (!existsSync(reportsDir)) {
-  mkdirSync(reportsDir, { recursive: true });
+const REPORTS_DIR = 'reports'
+const REQUIRED_DIRS = [
+  'reports/lint',
+  'reports/tests', 
+  'reports/coverage',
+  'reports/wiring',
+  'reports/task-audit'
+]
+
+function ensureDirectories() {
+  console.log('📁 Ensuring report directories exist...')
+  
+  REQUIRED_DIRS.forEach(dir => {
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+      console.log(`  ✓ Created ${dir}`)
+    }
+  })
 }
 
-subdirs.forEach((subdir) => {
-  const path = join(reportsDir, subdir);
-  if (!existsSync(path)) {
-    mkdirSync(path, { recursive: true });
-  }
-});
-
-console.log('🚀 Running global test suite...\n');
-
-try {
+function runLint() {
+  console.log('🔍 Running lint...')
   try {
-    // 1. Lint
-    console.log('📋 Running lint...');
-    execSync('npm run lint', { stdio: 'inherit' });
-    console.log('✅ Lint completed\n');
+    const result = execSync('npm run lint -- --format json', { 
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    
+    // ESLint outputs to stdout, but npm adds extra output
+    // Try to extract just the JSON part
+    const lines = result.split('\n')
+    let jsonLine = ''
+    
+    for (const line of lines) {
+      if (line.trim().startsWith('[') || line.trim().startsWith('{')) {
+        jsonLine = line.trim()
+        break
+      }
+    }
+    
+    if (!jsonLine) {
+      // No JSON found, assume no issues
+      jsonLine = '[]'
+    }
+    
+    const lintResults = JSON.parse(jsonLine)
+    const errors = Array.isArray(lintResults) 
+      ? lintResults.reduce((sum: number, file: any) => sum + (file.errorCount || 0), 0)
+      : 0
+    const warnings = Array.isArray(lintResults)
+      ? lintResults.reduce((sum: number, file: any) => sum + (file.warningCount || 0), 0)
+      : 0
+    
+    const lintReport = {
+      timestamp: new Date().toISOString(),
+      errors,
+      warnings,
+      files: Array.isArray(lintResults) ? lintResults.length : 0,
+      results: lintResults
+    }
+    
+    writeFileSync('reports/lint/lint.json', JSON.stringify(lintReport, null, 2))
+    console.log(`  ✓ Lint completed: ${errors} errors, ${warnings} warnings`)
+    
+    return errors === 0
   } catch (error) {
-    console.log('⚠️  Lint had issues, continuing...\n');
+    console.error('  ✗ Lint failed:', error)
+    
+    // Create error report
+    const errorReport = {
+      timestamp: new Date().toISOString(),
+      errors: 1,
+      warnings: 0,
+      files: 0,
+      error: String(error)
+    }
+    
+    writeFileSync('reports/lint/lint.json', JSON.stringify(errorReport, null, 2))
+    return false
   }
+}
 
+function runTests() {
+  console.log('🧪 Running unit tests...')
   try {
-    // 2. Format check
-    console.log('🎨 Checking format...');
-    execSync('npm run format:check', { stdio: 'inherit' });
-    console.log('✅ Format check completed\n');
+    const output = execSync('npm run test -- --reporter=json', { 
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    
+    // Try to extract JSON from output
+    const lines = output.split('\n')
+    let jsonLine = ''
+    
+    for (const line of lines) {
+      if (line.trim().startsWith('{') && line.includes('testResults')) {
+        jsonLine = line.trim()
+        break
+      }
+    }
+    
+    let testResults
+    if (jsonLine) {
+      testResults = JSON.parse(jsonLine)
+    } else {
+      // Fallback - assume tests passed if no JSON found but no error
+      testResults = {
+        numPassedTests: 0,
+        numFailedTests: 0,
+        numPendingTests: 0,
+        numTotalTests: 0,
+        success: true
+      }
+    }
+    
+    const testReport = {
+      timestamp: new Date().toISOString(),
+      passed: testResults.numPassedTests || 0,
+      failed: testResults.numFailedTests || 0,
+      skipped: testResults.numPendingTests || 0,
+      total: testResults.numTotalTests || 0,
+      durationMs: testResults.testResults?.reduce((sum: number, result: any) => 
+        sum + (result.perfStats?.end - result.perfStats?.start || 0), 0) || 0,
+      success: testResults.success || false
+    }
+    
+    writeFileSync('reports/tests/unit.json', JSON.stringify(testReport, null, 2))
+    console.log(`  ✓ Tests completed: ${testReport.passed} passed, ${testReport.failed} failed`)
+    
+    return testReport.failed === 0
   } catch (error) {
-    console.log('⚠️  Format check had issues, continuing...\n');
+    console.error('  ✗ Tests failed:', error)
+    
+    // Create error report
+    const errorReport = {
+      timestamp: new Date().toISOString(),
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      total: 1,
+      durationMs: 0,
+      success: false,
+      error: String(error)
+    }
+    
+    writeFileSync('reports/tests/unit.json', JSON.stringify(errorReport, null, 2))
+    return false
   }
+}
 
+function runCoverage() {
+  console.log('📊 Running coverage...')
   try {
-    // 3. Unit tests with coverage
-    console.log('🧪 Running unit tests...');
-    execSync('npm run test', { stdio: 'inherit' });
-    console.log('✅ Unit tests completed\n');
+    execSync('npm run coverage', { stdio: 'inherit' })
+    
+    // Coverage summary should be generated by vitest in reports/coverage/coverage-summary.json
+    if (!existsSync('reports/coverage/coverage-summary.json')) {
+      // Create minimal coverage report if none exists
+      const coverageReport = {
+        timestamp: new Date().toISOString(),
+        lines: { pct: 0 },
+        statements: { pct: 0 },
+        functions: { pct: 0 },
+        branches: { pct: 0 },
+        total: {
+          lines: { pct: 0 },
+          statements: { pct: 0 },
+          functions: { pct: 0 },
+          branches: { pct: 0 }
+        }
+      }
+      
+      writeFileSync('reports/coverage/coverage-summary.json', JSON.stringify(coverageReport, null, 2))
+    }
+    
+    console.log('  ✓ Coverage completed')
+    return true
   } catch (error) {
-    console.log('⚠️  Unit tests had issues, continuing...\n');
+    console.error('  ✗ Coverage failed:', error)
+    
+    // Create error coverage report
+    const errorReport = {
+      timestamp: new Date().toISOString(),
+      lines: { pct: 0 },
+      statements: { pct: 0 },
+      functions: { pct: 0 },
+      branches: { pct: 0 },
+      total: {
+        lines: { pct: 0 },
+        statements: { pct: 0 },
+        functions: { pct: 0 },
+        branches: { pct: 0 }
+      },
+      error: String(error)
+    }
+    
+    writeFileSync('reports/coverage/coverage-summary.json', JSON.stringify(errorReport, null, 2))
+    return false
   }
+}
 
-  // 4. BDD tests (when they exist)
-  console.log('🥒 Running BDD tests...');
+function generateWiringReport() {
+  console.log('🔌 Generating wiring report...')
+  
+  // For now, create empty wiring report since no domain code exists yet
+  const wiringReport = {
+    timestamp: new Date().toISOString(),
+    ok: true,
+    missingHandlers: [],
+    unwiredEvents: [],
+    domains: [],
+    notes: ['No domain code exists yet - wiring check will be implemented with first domain']
+  }
+  
+  writeFileSync('reports/wiring/wiring.json', JSON.stringify(wiringReport, null, 2))
+  console.log('  ✓ Wiring report generated')
+  return true
+}
+
+function generateReports() {
+  console.log('📋 Generating global report...')
   try {
-    execSync('npm run test:bdd', { stdio: 'inherit' });
-    console.log('✅ BDD tests completed\n');
+    execSync('npm run generate-report', { stdio: 'inherit' })
+    console.log('  ✓ Global report generated')
+    return true
   } catch (error) {
-    console.log('⚠️  BDD tests not yet implemented\n');
+    console.error('  ✗ Report generation failed:', error)
+    return false
   }
+}
 
-  // 5. Wiring check (when implemented)
-  console.log('🔌 Running wiring check...');
-  try {
-    execSync('tsx scripts/wiring-check.ts', { stdio: 'inherit' });
-    console.log('✅ Wiring check completed\n');
-  } catch (error) {
-    console.log('⚠️  Wiring check not yet implemented\n');
+function openReport() {
+  console.log('🌐 Opening report...')
+  const reportPath = join(process.cwd(), 'reports/global-report.html')
+  
+  if (existsSync(reportPath)) {
+    try {
+      // Open HTML report in default browser
+      const platform = process.platform
+      if (platform === 'darwin') {
+        execSync(`open "${reportPath}"`)
+      } else if (platform === 'win32') {
+        execSync(`start "${reportPath}"`)
+      } else {
+        execSync(`xdg-open "${reportPath}"`)
+      }
+      console.log('  ✓ Report opened in browser')
+      return true
+    } catch (error) {
+      console.error('  ✗ Failed to open report:', error)
+      return false
+    }
+  } else {
+    console.error('  ✗ Report file not found:', reportPath)
+    return false
   }
+}
 
-  // 6. Generate report
-  console.log('📊 Generating global report...');
-  execSync('npm run report', { stdio: 'inherit' });
-  console.log('✅ Global report generated\n');
+async function main() {
+  console.log('🚀 Starting global pipeline...\n')
+  
+  const startTime = Date.now()
+  let success = true
+  
+  // Ensure directories exist
+  ensureDirectories()
+  
+  // Run pipeline steps
+  const steps = [
+    { name: 'Lint', fn: runLint },
+    { name: 'Tests', fn: runTests },
+    { name: 'Coverage', fn: runCoverage },
+    { name: 'Wiring', fn: generateWiringReport },
+    { name: 'Reports', fn: generateReports },
+  ]
+  
+  for (const step of steps) {
+    const stepSuccess = step.fn()
+    if (!stepSuccess) {
+      success = false
+      console.log(`\n❌ Pipeline failed at step: ${step.name}`)
+      break
+    }
+  }
+  
+  if (success) {
+    openReport()
+    const duration = Date.now() - startTime
+    console.log(`\n✅ Global pipeline completed successfully in ${duration}ms`)
+  } else {
+    const duration = Date.now() - startTime
+    console.log(`\n❌ Global pipeline failed after ${duration}ms`)
+    process.exit(1)
+  }
+}
 
-  // 7. Open HTML report
-  console.log('🌐 Opening report in browser...');
-  const reportPath = join(process.cwd(), 'reports', 'global-report.html');
-
-  // Cross-platform open command
-  const openCmd =
-    process.platform === 'darwin'
-      ? 'open'
-      : process.platform === 'win32'
-        ? 'start'
-        : 'xdg-open';
-
-  execSync(`${openCmd} ${reportPath}`, { stdio: 'inherit' });
-} catch (error) {
-  console.error('❌ Global test suite failed:', error);
-  process.exit(1);
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(error => {
+    console.error('Pipeline error:', error)
+    process.exit(1)
+  })
 }

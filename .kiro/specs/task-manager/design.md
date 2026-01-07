@@ -2,60 +2,60 @@
 
 ## Overview
 
-The Task Manager is a React-based web application that provides a clean, efficient interface for personal task management. The system follows Domain-Driven Design (DDD) principles with clear separation between UI components, business logic, and data persistence. The application uses local storage for data persistence and implements an event-driven architecture for loose coupling between components.
+O Task Manager é uma aplicação React que fornece uma interface limpa e eficiente para gerenciamento pessoal de tarefas. O sistema segue princípios de Domain-Driven Design (DDD) com clara separação entre componentes UI, lógica de negócio e persistência de dados. A aplicação usa local storage para persistência de dados e implementa uma arquitetura orientada a eventos para baixo acoplamento entre componentes.
 
 ## Architecture
 
-The application follows a layered architecture with clear separation of concerns:
+A aplicação segue uma arquitetura em camadas com clara separação de responsabilidades:
 
-- **UI Layer**: React components with Material-UI for consistent styling
-- **Service Layer**: Business logic and task operations
-- **Repository Layer**: Data persistence abstraction with localStorage implementation
-- **Event Layer**: Event-driven communication between components
+- **UI Layer**: Componentes React com Material-UI para estilo consistente
+- **Service Layer**: Lógica de negócio e operações de tarefas
+- **Repository Layer**: Abstração de persistência de dados com implementação localStorage
+- **Event Layer**: Comunicação orientada a eventos entre componentes
 
 ### Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **UI Framework**: Material-UI (MUI) for components and theming
-- **State Management**: React Context + useReducer for global state
-- **Data Validation**: Zod for schema validation and type safety
-- **Testing**: Vitest + React Testing Library for unit tests
-- **Property Testing**: fast-check for property-based testing
-- **Build Tool**: Vite for development and bundling
-- **Storage**: Browser localStorage with fallback to in-memory storage
+- **Frontend**: React 18 com TypeScript
+- **UI Framework**: Material-UI (MUI) para componentes e temas
+- **State Management**: React Context + useReducer para estado global
+- **Data Validation**: Zod para validação de schema e type safety
+- **Testing**: Vitest + React Testing Library para testes unitários
+- **Property Testing**: fast-check para testes baseados em propriedades
+- **Build Tool**: Vite para desenvolvimento e bundling
+- **Storage**: localStorage do navegador com fallback para armazenamento em memória
 
 ## Components and Interfaces
 
 ### Core Components
 
-1. **TaskManager** (Main Container)
-   - Orchestrates the entire application
-   - Manages global state and event handling
-   - Provides context to child components
+1. **TaskManager** (Container Principal)
+   - Orquestra toda a aplicação
+   - Gerencia estado global e manipulação de eventos
+   - Fornece contexto para componentes filhos
 
 2. **TaskInput**
-   - Handles new task creation
-   - Validates input and prevents empty submissions
-   - Manages input focus and clearing
+   - Manipula criação de novas tarefas
+   - Valida entrada e previne submissões vazias
+   - Gerencia foco e limpeza da entrada
 
 3. **TaskList**
-   - Displays filtered list of tasks
-   - Handles task rendering and empty states
-   - Manages list interactions
+   - Exibe lista filtrada de tarefas
+   - Manipula renderização de tarefas e estados vazios
+   - Gerencia interações da lista
 
 4. **TaskItem**
-   - Individual task display and interaction
-   - Toggle completion status
-   - Delete task functionality
+   - Exibição e interação de tarefa individual
+   - Alterna status de conclusão
+   - Funcionalidade de deletar tarefa
 
 5. **TaskFilter**
-   - Filter controls (All, Active, Completed)
-   - Maintains filter state
-   - Updates display based on selection
+   - Controles de filtro (All, Active, Completed)
+   - Mantém estado do filtro
+   - Atualiza exibição baseada na seleção
 
 6. **TaskCounter**
-   - Displays count of active (incomplete) tasks
-   - Updates automatically when tasks change
+   - Exibe contagem de tarefas ativas (incompletas)
+   - Atualiza automaticamente quando tarefas mudam
 
 ### Service Interfaces
 
@@ -115,112 +115,110 @@ type AppState = z.infer<typeof AppStateSchema>;
 
 ## Correctness Properties
 
-_A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
-
-After reviewing the acceptance criteria, several properties can be consolidated to eliminate redundancy and provide comprehensive validation:
+*A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
 ### Property Reflection
 
-The following properties were identified as redundant and consolidated:
+Após revisar as propriedades identificadas no prework, as seguintes redundâncias foram identificadas e consolidadas:
 
-- Task addition and persistence properties (1.1, 1.4) can be combined into a single comprehensive property
-- Task completion toggle properties (2.1, 2.4) represent the same round-trip behavior
-- Filter display properties (4.1, 4.2, 4.3) can be unified into one comprehensive filtering property
-- Task count properties (6.1, 6.2, 6.4) all test the same counting invariant
+- Propriedades de adição e persistência de tarefas (1.1, 1.4) podem ser combinadas em uma propriedade abrangente
+- Propriedades de alternância de conclusão (2.1, 2.4) representam o mesmo comportamento round-trip
+- Propriedades de exibição de filtro (4.1, 4.2, 4.3) podem ser unificadas em uma propriedade de filtragem abrangente
+- Propriedades de contagem de tarefas (6.1, 6.2, 6.4) testam a mesma invariante de contagem
 
 ### Core Properties
 
-**Property 1: Task addition grows list and persists**
-_For any_ valid task description and current task list, adding the task should result in the task list growing by one, containing the new task, and the task being persisted to storage
+**Property 1: Adição de tarefa cresce lista e persiste**
+*Para qualquer* descrição de tarefa válida e lista de tarefas atual, adicionar a tarefa deve resultar na lista crescendo em um, contendo a nova tarefa, e a tarefa sendo persistida no storage
 **Validates: Requirements 1.1, 1.4**
 
-**Property 2: Empty task rejection preserves state**
-_For any_ string composed entirely of whitespace characters, attempting to add it should be rejected, leaving the task list and storage unchanged
+**Property 2: Rejeição de tarefa vazia preserva estado**
+*Para qualquer* string composta inteiramente de caracteres de espaço em branco, tentar adicioná-la deve ser rejeitado, deixando a lista de tarefas e storage inalterados
 **Validates: Requirements 1.2**
 
-**Property 3: Task addition clears and focuses input**
-_For any_ valid task addition, the input field should be cleared and receive focus after the operation completes
+**Property 3: Adição de tarefa limpa e foca entrada**
+*Para qualquer* adição de tarefa válida, o campo de entrada deve ser limpo e receber foco após a operação ser completada
 **Validates: Requirements 1.3**
 
-**Property 4: Task completion toggle round-trip**
-_For any_ task, toggling its completion status twice should return it to its original state, with appropriate styling applied at each step
+**Property 4: Round-trip de alternância de conclusão de tarefa**
+*Para qualquer* tarefa, alternar seu status de conclusão duas vezes deve retorná-la ao seu estado original, com estilo apropriado aplicado a cada passo
 **Validates: Requirements 2.1, 2.2, 2.4**
 
-**Property 5: Task completion persistence**
-_For any_ task completion status change, the new status should be immediately reflected in storage
+**Property 5: Persistência de conclusão de tarefa**
+*Para qualquer* mudança de status de conclusão de tarefa, o novo status deve ser imediatamente refletido no storage
 **Validates: Requirements 2.3**
 
-**Property 6: Task deletion removes and persists**
-_For any_ task in the task list, deleting it should remove it from both the displayed list and storage, while preserving the order and state of remaining tasks
+**Property 6: Remoção e persistência de deleção de tarefa**
+*Para qualquer* tarefa na lista de tarefas, deletá-la deve removê-la tanto da lista exibida quanto do storage, preservando a ordem e estado das tarefas restantes
 **Validates: Requirements 3.1, 3.2, 3.3**
 
-**Property 7: Filter display correctness**
-_For any_ task collection and filter selection (all/active/completed), only tasks matching the filter criteria should be displayed, and the filter state should persist across sessions
+**Property 7: Correção de exibição de filtro**
+*Para qualquer* coleção de tarefas e seleção de filtro (all/active/completed), apenas tarefas que correspondem aos critérios do filtro devem ser exibidas, e o estado do filtro deve persistir através de sessões
 **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
 
-**Property 8: Filter view updates with data changes**
-_For any_ filtered view and task modification (add/delete/toggle), the filtered display should update to reflect the current state correctly
+**Property 8: Atualização de visualização de filtro com mudanças de dados**
+*Para qualquer* visualização filtrada e modificação de tarefa (add/delete/toggle), a exibição filtrada deve atualizar para refletir o estado atual corretamente
 **Validates: Requirements 4.5**
 
-**Property 9: Storage restoration round-trip**
-_For any_ collection of tasks saved to storage, reloading the application should restore exactly the same tasks with identical properties
+**Property 9: Round-trip de restauração de storage**
+*Para qualquer* coleção de tarefas salva no storage, recarregar a aplicação deve restaurar exatamente as mesmas tarefas com propriedades idênticas
 **Validates: Requirements 5.1**
 
-**Property 10: Active task count accuracy**
-_For any_ task collection, the displayed active count should equal the number of incomplete tasks, updating immediately when tasks are added, deleted, or their completion status changes
+**Property 10: Precisão de contagem de tarefas ativas**
+*Para qualquer* coleção de tarefas, a contagem ativa exibida deve ser igual ao número de tarefas incompletas, atualizando imediatamente quando tarefas são adicionadas, deletadas, ou seu status de conclusão muda
 **Validates: Requirements 6.1, 6.2, 6.4**
 
 ## Error Handling
 
-The system implements comprehensive error handling for various failure scenarios:
+O sistema implementa tratamento abrangente de erros para vários cenários de falha:
 
 ### Storage Failures
 
-- **localStorage Unavailable**: Falls back to in-memory storage with user notification
-- **Corrupted Data**: Initializes with empty state and logs error for debugging
-- **Storage Quota Exceeded**: Implements cleanup strategy for old data
+- **localStorage Indisponível**: Fallback para armazenamento em memória com notificação ao usuário
+- **Dados Corrompidos**: Inicializa com estado vazio e registra erro para debugging
+- **Cota de Storage Excedida**: Implementa estratégia de limpeza para dados antigos
 
 ### Input Validation
 
-- **Invalid Task Data**: Rejects malformed tasks using Zod schema validation
-- **XSS Prevention**: Sanitizes all user input before storage and display
-- **Length Limits**: Enforces maximum task description length (500 characters)
+- **Dados de Tarefa Inválidos**: Rejeita tarefas malformadas usando validação de schema Zod
+- **Prevenção XSS**: Sanitiza toda entrada do usuário antes de armazenamento e exibição
+- **Limites de Comprimento**: Impõe comprimento máximo de descrição de tarefa (500 caracteres)
 
 ### Network and Performance
 
-- **Debounced Operations**: Prevents rapid-fire operations that could cause state inconsistencies
-- **Optimistic Updates**: Updates UI immediately while persisting in background
-- **Error Recovery**: Provides retry mechanisms for failed operations
+- **Operações Debounced**: Previne operações rápidas em sequência que poderiam causar inconsistências de estado
+- **Atualizações Otimistas**: Atualiza UI imediatamente enquanto persiste em background
+- **Recuperação de Erro**: Fornece mecanismos de retry para operações falhadas
 
 ## Testing Strategy
 
-The testing approach combines unit testing and property-based testing to ensure comprehensive coverage:
+A abordagem de teste combina testes unitários e testes baseados em propriedades para garantir cobertura abrangente:
 
-### Unit Testing with Vitest + React Testing Library
+### Unit Testing com Vitest + React Testing Library
 
-- **Component Testing**: Verify individual component behavior and rendering
-- **Integration Testing**: Test component interactions and data flow
-- **Edge Case Testing**: Handle specific scenarios like empty states and error conditions
-- **User Interaction Testing**: Simulate user actions and verify expected outcomes
+- **Teste de Componentes**: Verificar comportamento e renderização de componentes individuais
+- **Teste de Integração**: Testar interações de componentes e fluxo de dados
+- **Teste de Casos Extremos**: Manipular cenários específicos como estados vazios e condições de erro
+- **Teste de Interação do Usuário**: Simular ações do usuário e verificar resultados esperados
 
-### Property-Based Testing with fast-check
+### Property-Based Testing com fast-check
 
-- **Universal Properties**: Test behaviors that should hold across all valid inputs
-- **Minimum 100 iterations**: Each property test runs at least 100 random test cases
-- **Property Tagging**: Each test explicitly references its corresponding design property
-- **Tag Format**: `**Feature: task-manager, Property {number}: {property_text}**`
+- **Propriedades Universais**: Testar comportamentos que devem se manter através de todas as entradas válidas
+- **Mínimo 100 iterações**: Cada teste de propriedade executa pelo menos 100 casos de teste aleatórios
+- **Marcação de Propriedades**: Cada teste referencia explicitamente sua propriedade de design correspondente
+- **Formato de Marcação**: `**Feature: task-manager, Property {number}: {property_text}**`
 
 ### Testing Requirements
 
-- **Coverage Gates**: Maintain ≥80% overall coverage, with ≥90% for service layer
-- **Property Implementation**: Each correctness property implemented by exactly one property-based test
-- **Test Data Builders**: Use builders for consistent test data generation
-- **No Watch Mode**: All tests run in finite, non-interactive mode
+- **Gates de Cobertura**: Manter ≥80% de cobertura geral, com ≥90% para camada de serviço
+- **Implementação de Propriedades**: Cada propriedade de correção implementada por exatamente um teste baseado em propriedades
+- **Test Data Builders**: Usar builders para geração consistente de dados de teste
+- **Sem Watch Mode**: Todos os testes executam em modo finito, não-interativo
 
 ### Dual Testing Benefits
 
-- **Unit tests** catch specific bugs and verify concrete examples
-- **Property tests** verify general correctness across input space
-- **Together** they provide comprehensive validation of system behavior
+- **Testes unitários** capturam bugs específicos e verificam exemplos concretos
+- **Testes de propriedades** verificam correção geral através do espaço de entrada
+- **Juntos** eles fornecem validação abrangente do comportamento do sistema
 
-The testing strategy ensures that both specific use cases and general system properties are thoroughly validated, providing confidence in the system's correctness and reliability.
+A estratégia de teste garante que tanto casos de uso específicos quanto propriedades gerais do sistema sejam completamente validados, fornecendo confiança na correção e confiabilidade do sistema.
