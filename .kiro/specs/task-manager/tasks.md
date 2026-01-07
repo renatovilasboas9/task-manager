@@ -1,164 +1,209 @@
 # Implementation Plan
 
-- [x] 1. Set up project structure and development environment
-  - Initialize Vite + React + TypeScript project with proper folder structure
-  - Configure ESLint + Prettier with workspace settings for lint/format on save
-  - Set up Material-UI with theme configuration
-  - Create domain-based folder structure: `src/domains/task-manager/`
-  - Configure testing environment with Vitest + React Testing Library + fast-check
-  - _Requirements: All requirements need proper development setup_
+Seguindo rigorosamente a ordem imutável BDD-FIRST das regras de steering:
+**0) Pós-Setup: Pipeline do Global Report (OBRIGATÓRIO PRIMEIRO)** → 1) BDD → 2) Contratos (Zod) → 3) Gallery (UI) → 4) Repository oficial → 5) Service oficial → 6) Component/Unit tests → 7) E2E → 8) Documentação → 9) Baseline
 
-- [ ] 2. Create core contracts and data models
-  - [-] 2.1 Define Zod schemas for Task and application state
-    - Create TaskSchema with id, description, completed, createdAt, updatedAt
-    - Create TaskFilterSchema for filter types (all, active, completed)
-    - Create AppStateSchema for application state management
-    - _Requirements: 1.1, 1.2, 2.1, 4.1, 4.2, 4.3_
+- [x] 0. Step 0 - Pipeline do Global Report (OBRIGATÓRIO ANTES DE QUALQUER FEATURE)
+  - [x] 0.1 Estruturar pastas obrigatórias
+    - Criar `reports/` (artefatos e relatório final)
+    - Criar `scripts/` (orquestrador)
+    - Criar subpastas: `reports/lint/`, `reports/tests/`, `reports/coverage/`, `reports/wiring/`, `reports/task-audit/`
+    - _Requirements: Infraestrutura obrigatória para observabilidade_
 
-  - [ ] 2.2 Write property test for task schema validation
-    - **Property 2: Empty task rejection preserves state**
-    - **Validates: Requirements 1.2**
+  - [x] 0.2 Implementar script orquestrador global
+    - Criar `scripts/run-global.ts` (single-run, não interativo)
+    - Pipeline: lint → unit/component → coverage → gera artefatos → gera global-report.json → gera html → abre html
+    - Gerar artefatos reais mesmo que vazios no início
+    - _Requirements: Pipeline de observabilidade desde primeira linha_
 
-- [ ] 3. Implement repository layer with localStorage
-  - [ ] 3.1 Create TaskRepository interface and localStorage implementation
-    - Define repository interface with save, findById, findAll, delete, clear methods
-    - Implement LocalStorageTaskRepository with error handling for storage failures
-    - Add fallback to in-memory storage when localStorage unavailable
-    - _Requirements: 1.4, 2.3, 3.2, 5.1, 5.3, 5.4_
+  - [x] 0.3 Gerar artefatos obrigatórios
+    - `reports/lint/lint.json`
+    - `reports/tests/unit.json`
+    - `reports/coverage/coverage-summary.json` (istanbul)
+    - `reports/wiring/wiring.json`
+    - _Requirements: Artefatos para agregação no relatório_
 
-  - [ ] 3.2 Write property test for storage persistence
-    - **Property 9: Storage restoration round-trip**
-    - **Validates: Requirements 5.1**
+  - [x] 0.4 Implementar gerador do Global Report
+    - Criar `scripts/generate-report.ts`
+    - Gerar `reports/global-report.json` (lendo APENAS os arquivos de artefatos)
+    - Gerar `reports/global-report.html` (MUI)
+    - Falhar se qualquer artefato obrigatório não existir
+    - _Requirements: Relatório confiável desde o início_
 
-- [ ] 4. Implement task service layer
-  - [ ] 4.1 Create TaskService with business logic
-    - Implement createTask with GUID generation and validation
-    - Implement updateTask with completion status management
-    - Implement deleteTask with proper cleanup
-    - Add getAllTasks and getTasksByFilter methods
-    - _Requirements: 1.1, 2.1, 3.1, 4.1, 4.2, 4.3_
+  - [x] 0.5 Testar o report generator
+    - Criar testes unitários para validar parsing e consistência do JSON
+    - Testar que o pipeline falha se artefatos estão ausentes
+    - Garantir que coverage gate >= 80% começa a valer quando existir código de domínio
+    - _Requirements: Pipeline testado e confiável_
 
-  - [ ] 4.2 Write property test for task creation
-    - **Property 1: Task addition grows list and persists**
-    - **Validates: Requirements 1.1, 1.4**
+  - [x] 0.6 Configurar auto-open do HTML
+    - Após execução global, abrir `reports/global-report.html` automaticamente
+    - _Requirements: Feedback imediato do estado do projeto_
 
-  - [ ] 4.3 Write property test for task completion toggle
-    - **Property 4: Task completion toggle round-trip**
-    - **Validates: Requirements 2.1, 2.2, 2.4**
+- [x] 1. BDD PRIMEIRO (OBRIGATÓRIO - NADA PODE SER CRIADO ANTES)
+  - [x] 1.1 Criar cenário BDD para criação de tarefas
+    - Escrever `src/domains/task-manager/bdd/task-creation.test.ts`
+    - Definir comportamento: criar tarefa válida, rejeitar tarefa vazia
+    - Usar ANDAIMES temporários (mocks/MemoryRepository) para viabilizar BDD
+    - Testar efeito final: tarefa aparece na lista E é persistida
+    - **Property 1: Adição de tarefa cresce lista e persiste**
+    - **Property 2: Rejeição de tarefa vazia preserva estado**
+    - _Requirements: 1.1, 1.2, 1.4_
 
-  - [ ] 4.4 Write property test for task deletion
-    - **Property 6: Task deletion removes and persists**
-    - **Validates: Requirements 3.1, 3.2, 3.3**
+  - [x] 1.2 Criar cenário BDD para conclusão de tarefas
+    - Escrever `src/domains/task-manager/bdd/task-completion.test.ts`
+    - Definir comportamento round-trip: incompleta → completa → incompleta
+    - Testar efeito final: UI muda E repository muda
+    - **Property 4: Round-trip de alternância de conclusão de tarefa**
+    - **Property 5: Persistência de conclusão de tarefa**
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 5. Create event system and composition root
-  - [ ] 5.1 Implement EventBus for component communication
-    - Create simple pub/sub event system for loose coupling
-    - Define task-related events (TASK.CREATE, TASK.UPDATE, TASK.DELETE)
-    - _Requirements: All requirements benefit from event-driven architecture_
+  - [x] 1.3 Criar cenário BDD para deleção de tarefas
+    - Escrever `src/domains/task-manager/bdd/task-deletion.test.ts`
+    - Definir comportamento: tarefa removida da UI E do storage
+    - Testar manutenção de ordem das tarefas restantes
+    - **Property 6: Remoção e persistência de deleção de tarefa**
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 5.2 Set up composition root and dependency injection
-    - Create composition root that wires repository, service, and event handlers
-    - Configure different implementations for TEST/DEV environments
-    - _Requirements: All requirements need proper dependency management_
+  - [x] 1.4 Criar cenário BDD para filtragem de tarefas
+    - Escrever `src/domains/task-manager/bdd/task-filtering.test.ts`
+    - Definir comportamento de filtros (all, active, completed)
+    - Testar persistência de estado do filtro através de recarregamentos
+    - **Property 7: Correção de exibição de filtro**
+    - **Property 8: Atualização de visualização de filtro com mudanças de dados**
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 6. Implement core React components
-  - [ ] 6.1 Create TaskInput component
-    - Implement input field with validation and submission handling
-    - Add Enter key and button click support for task creation
-    - Implement input clearing and focus management after submission
-    - _Requirements: 1.1, 1.2, 1.3_
-
-  - [ ] 6.2 Write property test for input behavior
-    - **Property 3: Task addition clears and focuses input**
-    - **Validates: Requirements 1.3**
-
-  - [ ] 6.3 Create TaskItem component
-    - Implement individual task display with checkbox and delete button
-    - Add completion status toggle functionality
-    - Implement visual styling for completed vs active tasks
-    - _Requirements: 2.1, 2.2, 2.4, 3.1_
-
-  - [ ] 6.4 Create TaskList component
-    - Implement task collection display with proper rendering
-    - Add empty state handling when no tasks exist
-    - Integrate with filtering system for conditional display
-    - _Requirements: 3.4, 4.1, 4.2, 4.3, 4.5_
-
-  - [ ] 6.5 Create TaskFilter component
-    - Implement filter buttons (All, Active, Completed)
-    - Add active filter state management and persistence
-    - _Requirements: 4.1, 4.2, 4.3, 4.4_
-
-  - [ ] 6.6 Create TaskCounter component
-    - Implement active task counting logic
-    - Add real-time updates when task status changes
-    - _Requirements: 6.1, 6.2, 6.3, 6.4_
-
-  - [ ] 6.7 Write property test for filtering logic
-    - **Property 7: Filter display correctness**
-    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
-
-  - [ ] 6.8 Write property test for filter updates
-    - **Property 8: Filter view updates with data changes**
-    - **Validates: Requirements 4.5**
-
-  - [ ] 6.9 Write property test for task counting
-    - **Property 10: Active task count accuracy**
-    - **Validates: Requirements 6.1, 6.2, 6.4**
-
-- [ ] 7. Create main TaskManager container component
-  - [ ] 7.1 Implement main application container
-    - Set up React Context for global state management
-    - Integrate all child components with proper data flow
-    - Implement application initialization and data loading
-    - Add error boundary for graceful error handling
+  - [x] 1.5 Criar cenário BDD para persistência de dados
+    - Escrever `src/domains/task-manager/bdd/task-persistence.test.ts`
+    - Definir comportamento save/load do localStorage
+    - Testar fallback para memória quando localStorage indisponível
+    - **Property 9: Round-trip de restauração de storage**
     - _Requirements: 5.1, 5.3, 5.4_
 
-  - [ ] 7.2 Write property test for completion status persistence
-    - **Property 5: Task completion persistence**
-    - **Validates: Requirements 2.3**
+- [ ] 2. Contratos Zod (APÓS BDD existir)
+  - [ ] 2.1 Criar contratos Zod derivados dos cenários BDD
+    - Criar `src/shared/contracts/task-manager/v1/TaskSchema.ts`
+    - TaskSchema: id (uuid), description (1-500 chars), completed (boolean), createdAt, updatedAt
+    - TaskFilterSchema: enum ['all', 'active', 'completed']
+    - AppStateSchema: tasks[], filter, isLoading, error
+    - Usar parse/safeParse nos BDD steps (No-Contract Drift)
+    - _Requirements: 1.1, 1.2, 2.1, 4.1, 4.2, 4.3_
 
-- [ ] 8. Checkpoint - Ensure all tests pass
-  - Ensure all tests pass, ask the user if questions arise.
+- [ ] 3. Gallery (UI Components) - APÓS contratos existirem
+  - [ ] 3.1 Criar TaskInput component
+    - Campo de entrada com validação Zod
+    - Suporte Enter + botão para criação
+    - Limpeza e foco após submissão
+    - Derivar props de constraints do contrato (maxLength=500)
+    - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 9. Add error handling and edge cases
-  - [ ] 9.1 Implement comprehensive error handling
-    - Add localStorage failure detection and fallback
-    - Implement corrupted data recovery with empty state initialization
-    - Add user notifications for storage issues and errors
+  - [ ] 3.2 Criar TaskItem component
+    - Exibição individual com checkbox e botão delete
+    - Alternância de status de conclusão
+    - Estilo visual para completed vs active
+    - _Requirements: 2.1, 2.2, 2.4, 3.1_
+
+  - [ ] 3.3 Criar TaskList component
+    - Exibição de coleção com renderização adequada
+    - Estado vazio quando não há tarefas
+    - Integração com sistema de filtragem
+    - _Requirements: 3.4, 4.1, 4.2, 4.3, 4.5_
+
+  - [ ] 3.4 Criar TaskFilter component
+    - Botões de filtro (All, Active, Completed)
+    - Gerenciamento de estado ativo e persistência
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
+  - [ ] 3.5 Criar TaskCounter component
+    - Contagem de tarefas ativas em tempo real
+    - **Property 10: Precisão de contagem de tarefas ativas**
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+
+- [ ] 4. Repository oficial (substitui ANDAIMES temporários)
+  - [ ] 4.1 Criar TaskRepository interface e LocalStorageTaskRepository
+    - Interface: save, findById, findAll, delete, clear
+    - LocalStorageTaskRepository com error handling
+    - Fallback para MemoryRepository quando localStorage indisponível
+    - _Requirements: 1.4, 2.3, 3.2, 5.1, 5.3, 5.4_
+
+- [ ] 5. Service oficial (substitui ANDAIMES temporários)
+  - [ ] 5.1 Criar TaskService com lógica de negócio
+    - createTask com GUID generation e validação Zod
+    - updateTask com gerenciamento de completion status
+    - deleteTask com cleanup adequado
+    - getAllTasks e getTasksByFilter
+    - Publicar DOMAIN events quando aplicável
+    - _Requirements: 1.1, 2.1, 3.1, 4.1, 4.2, 4.3_
+
+- [ ] 6. Composition Root / Wiring
+  - [ ] 6.1 Criar EventBus simples (pub/sub em memória)
+    - Eventos formato: SCOPE.DOMAIN.ACTION
+    - TASK.MANAGER.CREATE, TASK.MANAGER.UPDATE, TASK.MANAGER.DELETE
+    - _Requirements: Arquitetura orientada a eventos_
+
+  - [ ] 6.2 Criar composition root por domínio
+    - Registrar handlers (UI events → services)
+    - Configurar repository implementation por ambiente (TEST=Memory, DEV=LocalStorage)
+    - Wiring testável via suíte "wiring check"
+    - _Requirements: Gerenciamento de dependências_
+
+- [ ] 7. TaskManager container principal
+  - [ ] 7.1 Implementar container da aplicação
+    - React Context + useReducer para estado global
+    - Integração de todos os componentes filhos
+    - Inicialização e carregamento de dados
+    - Error boundary para tratamento gracioso
+    - _Requirements: 5.1, 5.3, 5.4_
+
+- [ ] 8. Checkpoint - Garantir todos os testes passem
+  - Garantir que todos os testes passem, perguntar ao usuário se surgem questões.
+
+- [ ] 9. No-Mocks Drift (OBRIGATÓRIO)
+  - [ ] 9.1 Atualizar BDD para usar implementações oficiais
+    - Substituir ANDAIMES por Repository/Service oficiais via DI
+    - BDD deve rodar com MemoryRepository em TEST, LocalStorage em DEV
+    - Steps devem usar contratos Zod (parse/safeParse)
+    - Remover completamente artefatos temporários
+    - _Requirements: Todos os requisitos com implementações reais_
+
+- [ ] 10. Component/Unit tests (apenas onde BDD NÃO cobre)
+  - [ ] 10.1 Testes unitários para componentes UI
+    - Focar em comportamentos NÃO cobertos pelos cenários BDD
+    - Componentes de tela, scripts (parser/gerador do report)
+    - Utilitários/infra transversal
+    - _Requirements: Validação de componentes individuais_
+
+  - [ ] 10.2 Property tests para propriedades não cobertas por BDD
+    - **Property 3: Adição de tarefa limpa e foca entrada**
+    - Apenas se BDD não cobrir completamente
+    - _Requirements: 1.3_
+
+- [ ] 11. Tratamento de erro e casos extremos
+  - [ ] 11.1 Implementar error handling abrangente
+    - localStorage failure detection e fallback
+    - Corrupted data recovery com empty state
+    - User notifications para storage issues
     - _Requirements: 5.3, 5.4_
 
-  - [ ] 9.2 Write unit tests for error scenarios
-    - Test localStorage unavailable fallback behavior
-    - Test corrupted data recovery and error logging
-    - Test empty state display when last task deleted
-    - _Requirements: 3.4, 5.3, 5.4_
+- [ ] 12. E2E (Gherkin + Cucumber OBRIGATÓRIO)
+  - [ ] 12.1 Configurar Playwright + Cucumber
+    - Arquivos .feature em `src/e2e/features/`
+    - Step definitions em `src/e2e/steps/`
+    - 1 browser, vídeo recording
+    - Gerar `reports/tests/e2e.json`
+    - _Requirements: Validação E2E com Cucumber_
 
-- [ ] 10. Implement BDD scenarios for end-to-end validation
-  - [ ] 10.1 Create BDD test scenarios
-    - Write Gherkin scenarios for core user workflows
-    - Implement step definitions using real components and services
-    - Cover task creation, completion, deletion, and filtering workflows
-    - _Requirements: All requirements validated through BDD scenarios_
+  - [ ] 12.2 Mapear cenários E2E para cenários BDD
+    - Cada cenário E2E mapeia para 1 cenário BDD pai
+    - Cobrir criação, conclusão, deleção, filtragem via UI
+    - _Requirements: Todos os requisitos via E2E_
 
-  - [ ] 10.2 Set up E2E tests with Playwright
-    - Configure Playwright for cross-browser testing
-    - Create E2E tests that map to BDD scenarios
-    - Add video recording for test execution
-    - _Requirements: All requirements need E2E validation_
+- [ ] 13. Integração final
+  - [ ] 13.1 Conectar tudo no App principal
+    - Wiring final de todos os componentes
+    - Styling e responsive design
+    - Loading states e transitions
+    - _Requirements: Integração final_
 
-- [ ] 11. Final integration and polish
-  - [ ] 11.1 Complete application integration
-    - Wire all components together in main App component
-    - Add final styling and responsive design touches
-    - Implement proper loading states and transitions
-    - _Requirements: All requirements need final integration_
-
-  - [ ] 11.2 Add comprehensive integration tests
-    - Test complete user workflows from UI to storage
-    - Verify event flow and component communication
-    - Test application initialization and data restoration
-    - _Requirements: All requirements need integration validation_
-
-- [ ] 12. Final Checkpoint - Ensure all tests pass
-  - Ensure all tests pass, ask the user if questions arise.
+- [ ] 14. Checkpoint Final
+  - Garantir que todos os testes passem, perguntar ao usuário se surgem questões.

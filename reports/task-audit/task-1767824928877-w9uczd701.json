@@ -1,0 +1,75 @@
+{
+  "taskId": "task-1767824928877-w9uczd701",
+  "timestamp": "2026-01-07T22:29:14.494Z",
+  "scope": {
+    "mode": "global",
+    "domain": null,
+    "files": []
+  },
+  "gates": {
+    "testsPassed": true,
+    "coverageOk": false,
+    "lintOk": true,
+    "wiringOk": true,
+    "driftOk": true
+  },
+  "tests": {
+    "unit": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0,
+      "outputFile": "reports/tests/unit.json"
+    },
+    "bdd": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0,
+      "outputFile": "reports/tests/bdd.json"
+    },
+    "e2e": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0,
+      "outputFile": "reports/tests/e2e.json",
+      "framework": "none"
+    }
+  },
+  "coverage": {
+    "engine": "@vitest/coverage-istanbul",
+    "linesPct": 0,
+    "branchesPct": 0,
+    "functionsPct": 0,
+    "statementsPct": 0,
+    "byDomain": {},
+    "byLayer": {},
+    "outputFile": "reports/coverage/coverage-summary.json"
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 0,
+    "outputFile": "reports/lint/lint.json"
+  },
+  "wiring": {
+    "ok": true,
+    "missingHandlers": [],
+    "unwiredEvents": [],
+    "outputFile": "reports/wiring/wiring.json"
+  },
+  "drift": {
+    "mocksAfterOfficial": 0,
+    "unusedContractsInBdd": 0,
+    "domainRepoInShared": 0,
+    "notes": [
+      "No domain code exists yet - drift check will be implemented with first domain"
+    ]
+  },
+  "autoOpen": {
+    "didOpenReport": false,
+    "didOpenGallery": false,
+    "didOpenApp": false,
+    "reasonIfNot": "Quality gates failing"
+  }
+}

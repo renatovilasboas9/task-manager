@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-01-07T23:11:29.448Z",
+  "ok": true,
+  "missingHandlers": [],
+  "unwiredEvents": [],
+  "domains": [],
+  "notes": [
+    "No domain code exists yet - wiring check will be implemented with first domain"
+  ]
+}

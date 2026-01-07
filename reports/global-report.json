@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-01-07T23:11:30.352Z",
+  "commitSha": "cada947edca9be75081742e781f0348b5ec670b2",
+  "baselineTag": null,
+  "phase": "setup",
+  "sources": [
+    "reports/lint/lint.json",
+    "reports/tests/unit.json",
+    "reports/coverage/coverage-summary.json",
+    "reports/wiring/wiring.json"
+  ],
+  "inventory": {
+    "domains": [
+      "task-manager"
+    ],
+    "screens": 0,
+    "components": 0,
+    "contracts": 0,
+    "bddScenarios": 0,
+    "e2eFeatures": 0,
+    "e2eScenarios": 0,
+    "linesOfCode": 768,
+    "sharedFiles": 0
+  },
+  "qualityGates": {
+    "testsAllPassing": true,
+    "coverageOk": false,
+    "lintOk": true,
+    "wiringOk": true,
+    "driftOk": true
+  },
+  "testsSummary": {
+    "unit": {
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0
+    },
+    "bdd": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0
+    },
+    "e2e": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0,
+      "framework": "none"
+    }
+  },
+  "coverageSummary": {
+    "engine": "@vitest/coverage-istanbul",
+    "linesPct": 0,
+    "branchesPct": 0,
+    "functionsPct": 0,
+    "statementsPct": 0,
+    "byDomain": {},
+    "byLayer": {},
+    "lowestCoveredFiles": [],
+    "notes": []
+  },
+  "lintSummary": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "wiringSummary": {
+    "missingHandlersCount": 0,
+    "unwiredEventsCount": 0
+  },
+  "driftSummary": {
+    "mocksAfterOfficial": 0,
+    "unusedContractsInBdd": 0,
+    "domainRepoInShared": 0
+  },
+  "tasks": {
+    "lastTaskId": null,
+    "history": []
+  }
+}

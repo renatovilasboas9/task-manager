@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-01-07T23:11:10.275Z",
+  "errors": 0,
+  "warnings": 0,
+  "files": 1,
+  "results": [
+    {
+      "filePath": "/Users/renatovilasboas/Renato/Apps/tasks/vite.config.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": [
+        {
+          "ruleId": "no-extra-semi",
+          "replacedBy": []
+        },
+        {
+          "ruleId": "no-mixed-spaces-and-tabs",
+          "replacedBy": []
+        }
+      ]
+    }
+  ]
+}
