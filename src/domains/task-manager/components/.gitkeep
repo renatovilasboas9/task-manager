@@ -1,0 +1,9 @@
+# Task Manager Components
+
+This directory will contain:
+- TaskInput.tsx
+- TaskItem.tsx  
+- TaskList.tsx
+- TaskFilter.tsx
+- TaskCounter.tsx
+- TaskManager.tsx (main container)

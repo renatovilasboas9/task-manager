@@ -1,0 +1,6 @@
+# BDD Tests for Task Manager
+
+This directory will contain:
+- Gherkin feature files
+- Step definitions
+- Test data builders

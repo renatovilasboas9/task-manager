@@ -1,0 +1,6 @@
+# Task Manager Repository
+
+This directory will contain:
+- TaskRepository interface
+- LocalStorageTaskRepository implementation
+- MemoryTaskRepository for testing

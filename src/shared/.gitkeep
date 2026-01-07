@@ -1,0 +1,6 @@
+# Shared Code
+
+This directory contains code shared across domains:
+- utils/ - Generic utility functions
+- contracts/ - Cross-domain contracts
+- infra/ - Infrastructure code (EventBus, etc.)

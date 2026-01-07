@@ -1,0 +1,9 @@
+# Task Manager Domain
+
+This directory contains all task management related code organized by layers:
+
+- `bdd/` - BDD test scenarios and step definitions
+- `components/` - React components for task management UI
+- `service/` - Business logic and task management services  
+- `repository/` - Data access layer and storage implementations
+- `contracts/` - Zod schemas and type definitions

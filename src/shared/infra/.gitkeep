@@ -1,0 +1,6 @@
+# Shared Infrastructure
+
+This directory will contain:
+- EventBus.ts - Event system for component communication
+- Logger utilities
+- Other infrastructure code
