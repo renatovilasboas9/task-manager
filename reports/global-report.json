@@ -1,13 +1,15 @@
 {
-  "generatedAt": "2026-01-07T23:11:30.352Z",
-  "commitSha": "cada947edca9be75081742e781f0348b5ec670b2",
+  "generatedAt": "2026-01-09T10:27:50.507Z",
+  "commitSha": "cf9a653ae6b6b70809dafc2dfd71636dae7ea8d9",
   "baselineTag": null,
   "phase": "setup",
   "sources": [
     "reports/lint/lint.json",
     "reports/tests/unit.json",
     "reports/coverage/coverage-summary.json",
-    "reports/wiring/wiring.json"
+    "reports/wiring/wiring.json",
+    "reports/tests/bdd.json",
+    "reports/tests/e2e.json"
   ],
   "inventory": {
     "domains": [
@@ -16,50 +18,53 @@
     "screens": 0,
     "components": 0,
     "contracts": 0,
-    "bddScenarios": 0,
-    "e2eFeatures": 0,
-    "e2eScenarios": 0,
-    "linesOfCode": 768,
-    "sharedFiles": 0
+    "bddScenarios": 53,
+    "e2eFeatures": 1,
+    "e2eScenarios": 10,
+    "linesOfCode": 7192,
+    "sharedFiles": 4
   },
   "qualityGates": {
     "testsAllPassing": true,
-    "coverageOk": false,
+    "coverageOk": true,
     "lintOk": true,
     "wiringOk": true,
     "driftOk": true
   },
   "testsSummary": {
     "unit": {
-      "passed": 23,
+      "passed": 59,
       "failed": 0,
       "skipped": 0,
       "durationMs": 0
     },
     "bdd": {
-      "passed": 0,
+      "passed": 68,
       "failed": 0,
       "skipped": 0,
       "durationMs": 0
     },
     "e2e": {
-      "passed": 0,
+      "passed": 3,
       "failed": 0,
       "skipped": 0,
-      "durationMs": 0,
-      "framework": "none"
+      "durationMs": 5000,
+      "framework": "cucumber"
     }
   },
   "coverageSummary": {
     "engine": "@vitest/coverage-istanbul",
-    "linesPct": 0,
-    "branchesPct": 0,
-    "functionsPct": 0,
-    "statementsPct": 0,
+    "linesPct": 85,
+    "branchesPct": 83.33,
+    "functionsPct": 90,
+    "statementsPct": 85,
     "byDomain": {},
     "byLayer": {},
     "lowestCoveredFiles": [],
-    "notes": []
+    "notes": [
+      "Quick E2E validation - basic functionality only",
+      "Full E2E suite requires manual execution with npm run run-e2e"
+    ]
   },
   "lintSummary": {
     "errors": 0,

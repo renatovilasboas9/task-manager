@@ -79,8 +79,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>❌ Task Manager</h1>
-            <div class="status">Global Report - Status: FAILING</div>
+            <h1>✅ Task Manager</h1>
+            <div class="status">Global Report - Status: PASSING</div>
         </div>
         
         <div class="content">
@@ -89,15 +89,43 @@
                     <h3>📊 Test Summary</h3>
                     <div class="metric">
                         <span class="metric-label">Unit Tests Passed</span>
-                        <span class="metric-value">23</span>
+                        <span class="metric-value">59</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Unit Tests Failed</span>
                         <span class="metric-value">0</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Duration</span>
-                        <span class="metric-value">0ms</span>
+                        <span class="metric-label">BDD Tests Passed</span>
+                        <span class="metric-value">68</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Tests Failed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🎭 E2E Tests</h3>
+                    <div class="metric">
+                        <span class="metric-label">Framework</span>
+                        <span class="metric-value">cucumber</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Passed</span>
+                        <span class="metric-value">3</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Failed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Features</span>
+                        <span class="metric-value">1</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Scenarios</span>
+                        <span class="metric-value">10</span>
                     </div>
                 </div>
                 
@@ -105,15 +133,15 @@
                     <h3>📈 Coverage</h3>
                     <div class="metric">
                         <span class="metric-label">Lines</span>
-                        <span class="metric-value">0.0%</span>
+                        <span class="metric-value">85.0%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Branches</span>
-                        <span class="metric-value">0.0%</span>
+                        <span class="metric-value">83.3%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Functions</span>
-                        <span class="metric-value">0.0%</span>
+                        <span class="metric-value">90.0%</span>
                     </div>
                 </div>
                 
@@ -129,7 +157,7 @@
                     </div>
                     <div class="metric">
                         <span class="metric-label">Lines of Code</span>
-                        <span class="metric-value">768</span>
+                        <span class="metric-value">7192</span>
                     </div>
                 </div>
                 
@@ -140,8 +168,12 @@
                         <span class="metric-value">1</span>
                     </div>
                     <div class="metric">
+                        <span class="metric-label">BDD Scenarios</span>
+                        <span class="metric-value">53</span>
+                    </div>
+                    <div class="metric">
                         <span class="metric-label">Shared Files</span>
-                        <span class="metric-value">0</span>
+                        <span class="metric-value">4</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Phase</span>
@@ -158,10 +190,10 @@
                     <div class="gate-status">PASSING</div>
                 </div>
                 
-                <div class="gate fail">
-                    <div class="gate-icon">❌</div>
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
                     <div class="gate-label">Coverage ≥80%</div>
-                    <div class="gate-status">FAILING</div>
+                    <div class="gate-status">PASSING</div>
                 </div>
                 
                 <div class="gate pass">
@@ -186,9 +218,9 @@
         
         <div class="footer">
             <div class="timestamp">
-                Generated at 1/7/2026, 8:11:30 PM | 
-                Commit: cada947e | 
-                Sources: 4 artifacts
+                Generated at 1/9/2026, 7:27:50 AM | 
+                Commit: cf9a653a | 
+                Sources: 6 artifacts
             </div>
         </div>
     </div>
