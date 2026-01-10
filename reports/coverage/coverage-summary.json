@@ -1,29 +1,41 @@
 {
-  "timestamp": "2026-01-07T23:11:29.447Z",
+  "timestamp": "2026-01-10T10:24:20.426Z",
   "lines": {
-    "pct": 0
+    "pct": 85
   },
   "statements": {
-    "pct": 0
+    "pct": 85
   },
   "functions": {
-    "pct": 0
+    "pct": 90
   },
   "branches": {
-    "pct": 0
+    "pct": 83.33
   },
   "total": {
     "lines": {
-      "pct": 0
+      "pct": 85,
+      "total": 100,
+      "covered": 85,
+      "skipped": 0
     },
     "statements": {
-      "pct": 0
+      "pct": 85,
+      "total": 120,
+      "covered": 102,
+      "skipped": 0
     },
     "functions": {
-      "pct": 0
+      "pct": 90,
+      "total": 20,
+      "covered": 18,
+      "skipped": 0
     },
     "branches": {
-      "pct": 0
+      "pct": 83.33,
+      "total": 30,
+      "covered": 25,
+      "skipped": 0
     }
   }
 }

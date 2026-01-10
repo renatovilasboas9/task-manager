@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Global Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white; 
+            padding: 40px; 
+            text-align: center; 
+        }
+        .header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 10px; }
+        .header .status { font-size: 1.2rem; opacity: 0.9; }
+        .content { padding: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px; }
+        .card { 
+            background: #f8fafc; 
+            border-radius: 12px; 
+            padding: 24px; 
+            border-left: 4px solid #3b82f6;
+            transition: transform 0.2s ease;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .card h3 { color: #1e293b; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+        .metric { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .metric:last-child { margin-bottom: 0; }
+        .metric-label { color: #64748b; font-size: 0.9rem; }
+        .metric-value { font-weight: 600; color: #1e293b; }
+        .status-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            font-weight: 500;
+        }
+        .status-pass { background: #dcfce7; color: #166534; }
+        .status-fail { background: #fef2f2; color: #dc2626; }
+        .gates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .gate { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 20px; 
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+        .gate.pass { border-color: #10b981; background: #f0fdf4; }
+        .gate.fail { border-color: #ef4444; background: #fef2f2; }
+        .gate-icon { font-size: 2rem; margin-bottom: 8px; }
+        .gate-label { font-size: 0.9rem; color: #64748b; margin-bottom: 4px; }
+        .gate-status { font-weight: 600; }
+        .footer { 
+            background: #f1f5f9; 
+            padding: 20px 40px; 
+            border-top: 1px solid #e2e8f0; 
+            font-size: 0.9rem; 
+            color: #64748b; 
+        }
+        .timestamp { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Task Manager</h1>
+            <div class="status">Global Report - Status: PASSING</div>
+        </div>
+        
+        <div class="content">
+            <div class="grid">
+                <div class="card">
+                    <h3>📊 Test Summary</h3>
+                    <div class="metric">
+                        <span class="metric-label">Unit Tests Passed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Unit Tests Failed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Tests Passed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Tests Failed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🎭 E2E Tests</h3>
+                    <div class="metric">
+                        <span class="metric-label">Framework</span>
+                        <span class="metric-value">none</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Passed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Failed</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Features</span>
+                        <span class="metric-value">1</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Scenarios</span>
+                        <span class="metric-value">13</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📈 Coverage</h3>
+                    <div class="metric">
+                        <span class="metric-label">Lines</span>
+                        <span class="metric-value">85.0%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Branches</span>
+                        <span class="metric-value">83.3%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Functions</span>
+                        <span class="metric-value">84.0%</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🔍 Code Quality</h3>
+                    <div class="metric">
+                        <span class="metric-label">Lint Errors</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Lint Warnings</span>
+                        <span class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Lines of Code</span>
+                        <span class="metric-value">7697</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🏗️ Project Inventory</h3>
+                    <div class="metric">
+                        <span class="metric-label">Domains</span>
+                        <span class="metric-value">1</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Scenarios</span>
+                        <span class="metric-value">53</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Shared Files</span>
+                        <span class="metric-value">4</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Phase</span>
+                        <span class="metric-value">setup</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 style="margin-bottom: 20px; color: #1e293b;">Quality Gates</h2>
+            <div class="gates-grid">
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
+                    <div class="gate-label">Tests</div>
+                    <div class="gate-status">PASSING</div>
+                </div>
+                
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
+                    <div class="gate-label">Coverage ≥80%</div>
+                    <div class="gate-status">PASSING</div>
+                </div>
+                
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
+                    <div class="gate-label">Lint</div>
+                    <div class="gate-status">PASSING</div>
+                </div>
+                
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
+                    <div class="gate-label">Wiring</div>
+                    <div class="gate-status">PASSING</div>
+                </div>
+                
+                <div class="gate pass">
+                    <div class="gate-icon">✅</div>
+                    <div class="gate-label">No Drift</div>
+                    <div class="gate-status">PASSING</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="timestamp">
+                Generated at 1/10/2026, 6:37:31 AM | 
+                Commit: 6f98ec42 | 
+                Sources: 4 artifacts
+            </div>
+        </div>
+    </div>
+</body>
+</html>

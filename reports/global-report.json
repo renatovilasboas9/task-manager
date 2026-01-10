@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-01-09T10:27:50.507Z",
-  "commitSha": "cf9a653ae6b6b70809dafc2dfd71636dae7ea8d9",
+  "generatedAt": "2026-01-10T11:34:03.101Z",
+  "commitSha": "6f98ec42d9681d9a257a30d75bd35082f42d2b58",
   "baselineTag": null,
   "phase": "setup",
   "sources": [
@@ -20,8 +20,8 @@
     "contracts": 0,
     "bddScenarios": 53,
     "e2eFeatures": 1,
-    "e2eScenarios": 10,
-    "linesOfCode": 7192,
+    "e2eScenarios": 13,
+    "linesOfCode": 7742,
     "sharedFiles": 4
   },
   "qualityGates": {
@@ -45,10 +45,10 @@
       "durationMs": 0
     },
     "e2e": {
-      "passed": 3,
+      "passed": 13,
       "failed": 0,
       "skipped": 0,
-      "durationMs": 5000,
+      "durationMs": 31730,
       "framework": "cucumber"
     }
   },
@@ -61,10 +61,7 @@
     "byDomain": {},
     "byLayer": {},
     "lowestCoveredFiles": [],
-    "notes": [
-      "Quick E2E validation - basic functionality only",
-      "Full E2E suite requires manual execution with npm run run-e2e"
-    ]
+    "notes": []
   },
   "lintSummary": {
     "errors": 0,

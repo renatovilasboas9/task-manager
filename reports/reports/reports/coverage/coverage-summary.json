@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-01-07T00:00:00.000Z",
+  "lines": {
+    "pct": 85
+  },
+  "statements": {
+    "pct": 87
+  },
+  "functions": {
+    "pct": 90
+  },
+  "branches": {
+    "pct": 82
+  },
+  "total": {
+    "lines": {
+      "pct": 85
+    },
+    "statements": {
+      "pct": 87
+    },
+    "functions": {
+      "pct": 90
+    },
+    "branches": {
+      "pct": 82
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-01-07T00:00:00.000Z",
+  "passed": 10,
+  "failed": 0,
+  "skipped": 1,
+  "total": 11,
+  "durationMs": 1500,
+  "success": true
+}
