@@ -75,6 +75,14 @@ interface WiringReport {
   notes?: string[]
 }
 
+interface GalleryReport {
+  available: boolean
+  routes: string[]
+  componentsRendered: number
+  smokeOk: boolean
+  notes: string[]
+}
+
 interface GlobalReport {
   generatedAt: string
   commitSha: string | null
@@ -128,6 +136,12 @@ interface GlobalReport {
     unusedContractsInBdd: number
     domainRepoInShared: number
   }
+  gallerySummary: {
+    available: boolean
+    routes: number
+    componentsRendered: number
+    smokeOk: boolean
+  }
   tasks: {
     lastTaskId: string | null
     history: Array<{
@@ -150,7 +164,8 @@ const REQUIRED_ARTIFACTS = [
 
 const OPTIONAL_ARTIFACTS = [
   'reports/tests/bdd.json',
-  'reports/tests/e2e.json'
+  'reports/tests/e2e.json',
+  'reports/gallery/gallery.json'
 ]
 
 function readJsonFile<T>(filePath: string): T {
@@ -387,6 +402,7 @@ function generateGlobalReport(): GlobalReport {
   // Read optional artifacts
   const bddReport = readOptionalJsonFile<TestReport>('reports/tests/bdd.json')
   const e2eReport = readOptionalJsonFile<E2EReport>('reports/tests/e2e.json')
+  const galleryReport = readOptionalJsonFile<GalleryReport>('reports/gallery/gallery.json')
   
   console.log('  ✓ All artifacts loaded successfully')
   
@@ -451,6 +467,12 @@ function generateGlobalReport(): GlobalReport {
       unwiredEventsCount: wiringReport.unwiredEvents.length
     },
     driftSummary: calculateDrift(),
+    gallerySummary: {
+      available: galleryReport?.available || false,
+      routes: galleryReport?.routes.length || 0,
+      componentsRendered: galleryReport?.componentsRendered || 0,
+      smokeOk: galleryReport?.smokeOk || false
+    },
     tasks: {
       lastTaskId: null,
       history: []
@@ -624,6 +646,26 @@ function generateHtmlReport(report: GlobalReport): string {
                     <div class="metric">
                         <span class="metric-label">Lines of Code</span>
                         <span class="metric-value">${report.inventory.linesOfCode}</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🎨 Gallery</h3>
+                    <div class="metric">
+                        <span class="metric-label">Available</span>
+                        <span class="metric-value">${report.gallerySummary.available ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Routes</span>
+                        <span class="metric-value">${report.gallerySummary.routes}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Components</span>
+                        <span class="metric-value">${report.gallerySummary.componentsRendered}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Smoke Check</span>
+                        <span class="metric-value">${report.gallerySummary.smokeOk ? 'Pass' : 'Fail'}</span>
                     </div>
                 </div>
                 

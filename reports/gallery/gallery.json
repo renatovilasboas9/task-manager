@@ -1,0 +1,15 @@
+{
+  "available": true,
+  "routes": [
+    "/",
+    "/task-manager"
+  ],
+  "componentsRendered": 10,
+  "smokeOk": true,
+  "notes": [
+    "Gallery directory exists: true",
+    "Routes discovered: 2",
+    "Components found: 10",
+    "Smoke check: PASS"
+  ]
+}

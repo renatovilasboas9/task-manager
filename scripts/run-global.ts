@@ -15,6 +15,7 @@ const REQUIRED_DIRS = [
   'reports/tests', 
   'reports/coverage',
   'reports/wiring',
+  'reports/gallery',
   'reports/task-audit'
 ]
 
@@ -282,6 +283,32 @@ function runCoverage() {
   }
 }
 
+function runGalleryCheck() {
+  console.log('🎨 Running gallery check...')
+  try {
+    execSync('npm run gallery:check', { stdio: 'inherit' })
+    console.log('  ✓ Gallery check completed')
+    return true
+  } catch (error) {
+    console.error('  ✗ Gallery check failed:', error)
+    
+    // Create error gallery report
+    const errorReport = {
+      available: false,
+      routes: [],
+      componentsRendered: 0,
+      smokeOk: false,
+      notes: [`Gallery check failed: ${error}`]
+    }
+    
+    if (!existsSync('reports/gallery')) {
+      mkdirSync('reports/gallery', { recursive: true })
+    }
+    
+    writeFileSync('reports/gallery/gallery.json', JSON.stringify(errorReport, null, 2))
+    return false
+  }
+}
 function generateWiringReport() {
   console.log('🔌 Generating wiring report...')
   
@@ -355,6 +382,7 @@ async function main() {
     { name: 'Unit Tests', fn: runUnitTests },
     { name: 'Coverage', fn: runCoverage },
     { name: 'Wiring', fn: generateWiringReport },
+    { name: 'Gallery', fn: runGalleryCheck },
     { name: 'Reports', fn: generateReports },
   ]
   

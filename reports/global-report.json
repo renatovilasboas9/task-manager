@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-01-10T11:34:03.101Z",
-  "commitSha": "6f98ec42d9681d9a257a30d75bd35082f42d2b58",
+  "generatedAt": "2026-01-10T12:07:03.565Z",
+  "commitSha": "d0494fb3d2503c3fb9ee4b39ed8a701836fc3518",
   "baselineTag": null,
   "phase": "setup",
   "sources": [
@@ -9,7 +9,8 @@
     "reports/coverage/coverage-summary.json",
     "reports/wiring/wiring.json",
     "reports/tests/bdd.json",
-    "reports/tests/e2e.json"
+    "reports/tests/e2e.json",
+    "reports/gallery/gallery.json"
   ],
   "inventory": {
     "domains": [
@@ -75,6 +76,12 @@
     "mocksAfterOfficial": 0,
     "unusedContractsInBdd": 0,
     "domainRepoInShared": 0
+  },
+  "gallerySummary": {
+    "available": true,
+    "routes": 2,
+    "componentsRendered": 10,
+    "smokeOk": true
   },
   "tasks": {
     "lastTaskId": null,
