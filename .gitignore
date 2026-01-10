@@ -1,1 +1,18 @@
 node_modules
+
+# Test artifacts (generated during test execution)
+reports/e2e-videos/
+reports/reports/e2e-videos/
+*.webm
+
+# Build artifacts
+dist/
+
+# OS files
+.DS_Store
+
+# Test results (generated)
+test_results.json
+
+# Temporary files
+temp/
