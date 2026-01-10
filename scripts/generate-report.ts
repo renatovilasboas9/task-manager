@@ -30,6 +30,27 @@ interface TestReport {
   error?: string
 }
 
+interface E2EReport {
+  timestamp: string
+  framework: string
+  featuresExecuted: number
+  scenariosExecuted: number
+  results: {
+    passed: number
+    failed: number
+    skipped: number
+    total: number
+  }
+  duration: {
+    ms: number
+    seconds: number
+  }
+  coverage: {
+    scenarios: string
+  }
+  notes?: string[]
+}
+
 interface CoverageReport {
   timestamp: string
   lines: { pct: number }
@@ -127,6 +148,11 @@ const REQUIRED_ARTIFACTS = [
   'reports/wiring/wiring.json'
 ]
 
+const OPTIONAL_ARTIFACTS = [
+  'reports/tests/bdd.json',
+  'reports/tests/e2e.json'
+]
+
 function readJsonFile<T>(filePath: string): T {
   if (!existsSync(filePath)) {
     throw new Error(`Required artifact missing: ${filePath}`)
@@ -141,6 +167,24 @@ function readJsonFile<T>(filePath: string): T {
     return JSON.parse(content) as T
   } catch (error) {
     throw new Error(`Failed to parse artifact ${filePath}: ${error}`)
+  }
+}
+
+function readOptionalJsonFile<T>(filePath: string): T | null {
+  if (!existsSync(filePath)) {
+    return null
+  }
+  
+  try {
+    const content = readFileSync(filePath, 'utf-8')
+    if (!content.trim()) {
+      return null
+    }
+    
+    return JSON.parse(content) as T
+  } catch (error) {
+    console.warn(`Warning: Failed to parse optional artifact ${filePath}: ${error}`)
+    return null
   }
 }
 
@@ -216,6 +260,66 @@ function scanInventory() {
     }
   }
   
+  // Count E2E features and scenarios
+  if (existsSync('src/e2e/features')) {
+    try {
+      const featureFiles = readdirSync('src/e2e/features').filter(file => file.endsWith('.feature'))
+      inventory.e2eFeatures = featureFiles.length
+      
+      // Count scenarios in feature files
+      let totalScenarios = 0
+      for (const featureFile of featureFiles) {
+        try {
+          const content = readFileSync(join('src/e2e/features', featureFile), 'utf-8')
+          const scenarioMatches = content.match(/^\s*Cenário:/gm)
+          if (scenarioMatches) {
+            totalScenarios += scenarioMatches.length
+          }
+        } catch {
+          // Ignore individual file errors
+        }
+      }
+      inventory.e2eScenarios = totalScenarios
+    } catch {
+      // Ignore errors
+    }
+  }
+  
+  // Count BDD scenarios
+  if (existsSync('src/domains')) {
+    try {
+      let totalBddScenarios = 0
+      
+      function countBddInDirectory(dir: string) {
+        const items = readdirSync(dir)
+        
+        for (const item of items) {
+          const fullPath = join(dir, item)
+          const stat = statSync(fullPath)
+          
+          if (stat.isDirectory()) {
+            countBddInDirectory(fullPath)
+          } else if (stat.isFile() && item.includes('.test.') && ['.ts', '.tsx'].includes(extname(item))) {
+            try {
+              const content = readFileSync(fullPath, 'utf-8')
+              const scenarioMatches = content.match(/describe\s*\(/g)
+              if (scenarioMatches) {
+                totalBddScenarios += scenarioMatches.length
+              }
+            } catch {
+              // Ignore individual file errors
+            }
+          }
+        }
+      }
+      
+      countBddInDirectory('src/domains')
+      inventory.bddScenarios = totalBddScenarios
+    } catch {
+      // Ignore errors
+    }
+  }
+  
   // Count shared files
   if (existsSync('src/shared')) {
     try {
@@ -267,17 +371,30 @@ function generateGlobalReport(): GlobalReport {
     sources.push(artifact)
   }
   
+  // Check for optional artifacts
+  for (const artifact of OPTIONAL_ARTIFACTS) {
+    if (existsSync(artifact)) {
+      sources.push(artifact)
+    }
+  }
+  
   // Read all artifacts
   const lintReport = readJsonFile<LintReport>('reports/lint/lint.json')
   const testReport = readJsonFile<TestReport>('reports/tests/unit.json')
   const coverageReport = readJsonFile<CoverageReport>('reports/coverage/coverage-summary.json')
   const wiringReport = readJsonFile<WiringReport>('reports/wiring/wiring.json')
   
+  // Read optional artifacts
+  const bddReport = readOptionalJsonFile<TestReport>('reports/tests/bdd.json')
+  const e2eReport = readOptionalJsonFile<E2EReport>('reports/tests/e2e.json')
+  
   console.log('  ✓ All artifacts loaded successfully')
   
   // Calculate quality gates
   const qualityGates = {
-    testsAllPassing: testReport.failed === 0 && testReport.success,
+    testsAllPassing: testReport.failed === 0 && testReport.success && 
+                     (bddReport ? bddReport.failed === 0 && bddReport.success : true) &&
+                     (e2eReport ? e2eReport.results.failed === 0 : true),
     coverageOk: coverageReport.total.lines.pct >= 80,
     lintOk: lintReport.errors === 0,
     wiringOk: wiringReport.ok && wiringReport.missingHandlers.length === 0 && wiringReport.unwiredEvents.length === 0,
@@ -300,8 +417,19 @@ function generateGlobalReport(): GlobalReport {
         skipped: testReport.skipped,
         durationMs: testReport.durationMs
       },
-      bdd: { passed: 0, failed: 0, skipped: 0, durationMs: 0 },
-      e2e: { passed: 0, failed: 0, skipped: 0, durationMs: 0, framework: 'none' }
+      bdd: bddReport ? {
+        passed: bddReport.passed,
+        failed: bddReport.failed,
+        skipped: bddReport.skipped,
+        durationMs: bddReport.durationMs
+      } : { passed: 0, failed: 0, skipped: 0, durationMs: 0 },
+      e2e: e2eReport ? {
+        passed: e2eReport.results.passed,
+        failed: e2eReport.results.failed,
+        skipped: e2eReport.results.skipped,
+        durationMs: e2eReport.duration.ms,
+        framework: e2eReport.framework
+      } : { passed: 0, failed: 0, skipped: 0, durationMs: 0, framework: 'none' }
     },
     coverageSummary: {
       engine: '@vitest/coverage-istanbul',
@@ -312,7 +440,7 @@ function generateGlobalReport(): GlobalReport {
       byDomain: {},
       byLayer: {},
       lowestCoveredFiles: [],
-      notes: []
+      notes: e2eReport?.notes || []
     },
     lintSummary: {
       errors: lintReport.errors,
@@ -434,8 +562,36 @@ function generateHtmlReport(report: GlobalReport): string {
                         <span class="metric-value">${report.testsSummary.unit.failed}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Duration</span>
-                        <span class="metric-value">${report.testsSummary.unit.durationMs}ms</span>
+                        <span class="metric-label">BDD Tests Passed</span>
+                        <span class="metric-value">${report.testsSummary.bdd.passed}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Tests Failed</span>
+                        <span class="metric-value">${report.testsSummary.bdd.failed}</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🎭 E2E Tests</h3>
+                    <div class="metric">
+                        <span class="metric-label">Framework</span>
+                        <span class="metric-value">${report.testsSummary.e2e.framework}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Passed</span>
+                        <span class="metric-value">${report.testsSummary.e2e.passed}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Tests Failed</span>
+                        <span class="metric-value">${report.testsSummary.e2e.failed}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Features</span>
+                        <span class="metric-value">${report.inventory.e2eFeatures}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">E2E Scenarios</span>
+                        <span class="metric-value">${report.inventory.e2eScenarios}</span>
                     </div>
                 </div>
                 
@@ -476,6 +632,10 @@ function generateHtmlReport(report: GlobalReport): string {
                     <div class="metric">
                         <span class="metric-label">Domains</span>
                         <span class="metric-value">${report.inventory.domains.length}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">BDD Scenarios</span>
+                        <span class="metric-value">${report.inventory.bddScenarios}</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Shared Files</span>

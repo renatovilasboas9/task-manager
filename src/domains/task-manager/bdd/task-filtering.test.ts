@@ -1,85 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
+import { Task, TaskFilter, TaskSchemaUtils } from '../../../shared/contracts/task-manager/v1/TaskSchema'
+import { TaskService } from '../service/TaskService'
+import { MemoryTaskRepository } from '../repository/MemoryTaskRepository'
+import { EventBus } from '../../../shared/infrastructure/EventBus'
+import { uuidv4 } from 'zod/v4'
+import { TaskRepository } from '../repository'
 
 /**
  * BDD Scenarios for Task Filtering
  * 
  * This file implements BDD scenarios for task filtering functionality.
- * Uses temporary scaffolding (mocks/MemoryRepository) to enable BDD-first development.
+ * Uses official implementations via DI (No-Mocks Drift).
+ * Uses official Zod contracts for validation (No-Contract Drift).
  * 
  * Properties tested:
  * - Property 7: Correção de exibição de filtro
  * - Property 8: Atualização de visualização de filtro com mudanças de dados
  */
 
-// Temporary scaffolding - will be replaced with official implementations
-interface Task {
-  id: string
-  description: string
-  completed: boolean
-  createdAt: Date
-  updatedAt: Date
-}
-
-type TaskFilter = 'all' | 'active' | 'completed'
-
-interface TaskRepository {
-  save(task: Task): Promise<Task>
-  findById(id: string): Promise<Task | null>
-  findAll(): Promise<Task[]>
-  delete(id: string): Promise<void>
-  clear(): Promise<void>
-}
-
 interface FilterState {
-  currentFilter: TaskFilter
   setFilter(filter: TaskFilter): void
   getFilter(): TaskFilter
   persistFilter(): void
   loadFilter(): TaskFilter
-}
-
-interface TaskService {
-  createTask(description: string): Promise<Task>
-  updateTask(id: string, updates: Partial<Task>): Promise<Task>
-  deleteTask(id: string): Promise<void>
-  getAllTasks(): Promise<Task[]>
-  getTasksByFilter(filter: TaskFilter): Promise<Task[]>
-}
-
-// Mock/Memory implementations for BDD scaffolding
-class MemoryTaskRepository implements TaskRepository {
-  private tasks: Task[] = []
-
-  async save(task: Task): Promise<Task> {
-    const existingIndex = this.tasks.findIndex(t => t.id === task.id)
-    if (existingIndex >= 0) {
-      this.tasks[existingIndex] = { ...task, updatedAt: new Date() }
-    } else {
-      this.tasks.push(task)
-    }
-    return this.tasks.find(t => t.id === task.id)!
-  }
-
-  async findById(id: string): Promise<Task | null> {
-    return this.tasks.find(t => t.id === id) || null
-  }
-
-  async findAll(): Promise<Task[]> {
-    return [...this.tasks]
-  }
-
-  async delete(id: string): Promise<void> {
-    const index = this.tasks.findIndex(t => t.id === id)
-    if (index === -1) {
-      throw new Error(`Task with id ${id} not found`)
-    }
-    this.tasks.splice(index, 1)
-  }
-
-  async clear(): Promise<void> {
-    this.tasks = []
-  }
 }
 
 class MockFilterState implements FilterState {
@@ -87,7 +31,13 @@ class MockFilterState implements FilterState {
   private storage: Record<string, string> = {}
 
   setFilter(filter: TaskFilter): void {
-    this.filter = filter
+    // Use Zod validation for filter
+    const filterResult = TaskSchemaUtils.safeParseTaskFilter(filter)
+    if (!filterResult.success) {
+      throw new Error(filterResult.error.errors[0].message)
+    }
+    
+    this.filter = filterResult.data
     this.persistFilter()
   }
 
@@ -100,10 +50,11 @@ class MockFilterState implements FilterState {
   }
 
   loadFilter(): TaskFilter {
-    const stored = this.storage['taskFilter'] as TaskFilter
-    if (stored && ['all', 'active', 'completed'].includes(stored)) {
-      this.filter = stored
-      return stored
+    const stored = this.storage['taskFilter']
+    const filterResult = TaskSchemaUtils.safeParseTaskFilter(stored)
+    if (filterResult.success) {
+      this.filter = filterResult.data
+      return filterResult.data
     }
     return 'all'
   }
@@ -113,25 +64,29 @@ class MockTaskService implements TaskService {
   constructor(private repository: TaskRepository) {}
 
   async createTask(description: string): Promise<Task> {
-    // Validate input - reject empty/whitespace-only descriptions
-    if (!description || description.trim().length === 0) {
-      throw new Error('Task description cannot be empty')
+    // Use Zod validation for input
+    const inputResult = TaskSchemaUtils.safeParseTaskCreateInput({ description })
+    if (!inputResult.success) {
+      throw new Error(inputResult.error.errors[0].message)
     }
 
-    // Validate length (max 500 characters as per design)
-    if (description.length > 500) {
-      throw new Error('Task description cannot exceed 500 characters')
-    }
+    const validatedInput = inputResult.data
 
     const task: Task = {
-      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      description: description.trim(),
+      id: uuidv4(),
+      description: validatedInput.description,
       completed: false,
       createdAt: new Date(),
       updatedAt: new Date()
     }
 
-    return await this.repository.save(task)
+    // Validate the created task with Zod schema
+    const taskResult = TaskSchemaUtils.safeParseTask(task)
+    if (!taskResult.success) {
+      throw new Error('Failed to create valid task')
+    }
+
+    return await this.repository.save(taskResult.data)
   }
 
   async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
@@ -140,15 +95,29 @@ class MockTaskService implements TaskService {
       throw new Error(`Task with id ${id} not found`)
     }
 
+    // Use Zod validation for update input
+    const updateResult = TaskSchemaUtils.safeParseTaskUpdateInput(updates)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error.errors[0].message)
+    }
+
+    const validatedUpdates = updateResult.data
+
     const updatedTask: Task = {
       ...existingTask,
-      ...updates,
+      ...validatedUpdates,
       id: existingTask.id, // Ensure ID cannot be changed
       createdAt: existingTask.createdAt, // Ensure createdAt cannot be changed
       updatedAt: new Date()
     }
 
-    return await this.repository.save(updatedTask)
+    // Validate the updated task with Zod schema
+    const taskResult = TaskSchemaUtils.safeParseTask(updatedTask)
+    if (!taskResult.success) {
+      throw new Error('Failed to create valid updated task')
+    }
+
+    return await this.repository.save(taskResult.data)
   }
 
   async deleteTask(id: string): Promise<void> {
@@ -166,9 +135,16 @@ class MockTaskService implements TaskService {
   }
 
   async getTasksByFilter(filter: TaskFilter): Promise<Task[]> {
+    // Use Zod validation for filter
+    const filterResult = TaskSchemaUtils.safeParseTaskFilter(filter)
+    if (!filterResult.success) {
+      throw new Error(filterResult.error.errors[0].message)
+    }
+
+    const validatedFilter = filterResult.data
     const allTasks = await this.getAllTasks()
     
-    switch (filter) {
+    switch (validatedFilter) {
       case 'all':
         return allTasks
       case 'active':
@@ -181,16 +157,19 @@ class MockTaskService implements TaskService {
   }
 }
 
-// Test Data Builder
+// Test Data Builder using Zod contracts
 class TaskFilteringTestDataBuilder {
   static createTask(description: string, completed: boolean = false): Task {
-    return {
-      id: `test-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    const task = {
+      id: 'test-id',
       description: description.trim(),
       completed,
       createdAt: new Date(),
       updatedAt: new Date()
     }
+    
+    // Validate with Zod schema
+    return TaskSchemaUtils.parseTask(task)
   }
 
   static randomTaskDescription(): fc.Arbitrary<string> {
@@ -226,12 +205,14 @@ class TaskFilteringTestDataBuilder {
 
 describe('BDD: Task Filtering Scenarios', () => {
   let repository: MemoryTaskRepository
-  let taskService: MockTaskService
+  let eventBus: EventBus
+  let taskService: TaskService
   let filterState: MockFilterState
 
   beforeEach(async () => {
     repository = new MemoryTaskRepository()
-    taskService = new MockTaskService(repository)
+    eventBus = new EventBus()
+    taskService = new TaskService(repository, eventBus)
     filterState = new MockFilterState()
   })
 
@@ -562,7 +543,7 @@ describe('BDD: Task Filtering Scenarios', () => {
 
       // When: I try to use an invalid filter
       // Then: It should throw an error
-      await expect(taskService.getTasksByFilter('invalid' as TaskFilter)).rejects.toThrow('Invalid filter: invalid')
+      await expect(taskService.getTasksByFilter('invalid' as TaskFilter)).rejects.toThrow('Filter must be one of: all, active, completed')
     })
   })
 
